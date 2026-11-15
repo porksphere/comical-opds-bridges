@@ -142,7 +142,7 @@ class OpdsBridge extends BridgeBase<Settings> {
     this.info = {
       id: "porksphere.opds",
       name: "OPDS",
-      version: "0.1.0",
+      version: "0.1.1",
       contractVersion: "2.1.0",
       languages: ["multi"],
       nsfw: false,
