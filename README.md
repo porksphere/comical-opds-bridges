@@ -6,7 +6,7 @@ Official [Comical](https://github.com/porksphere/comical-app) bridges for server
 |---|---|---|
 | **OPDS** (`porksphere.opds`) | Any OPDS 1.x catalog that streams pages with OPDS-PSE: Komga, Kavita, Codex, Stump, Ubooquity… | Available |
 | **Komga** (`porksphere.komga`) | Komga 1.19 or later, through its REST API. Read books sync both ways | Available |
-| Kavita | Kavita's REST API | Planned |
+| **Kavita** (`porksphere.kavita`) | Kavita's REST API, signed in with your API key. Read chapters sync both ways | Available |
 | Suwayomi | Suwayomi's GraphQL API | Planned |
 | LANraragi | LANraragi's API | Planned |
 
@@ -40,6 +40,19 @@ username and password. **Test connection** in the bridge's settings checks both.
 - Finishing a book in Comical marks it read on Komga. Books you read elsewhere show as read after
   the next library refresh.
 - Komga links (`/series/…`, `/book/…`) open in Comical.
+
+### Kavita
+
+- **Server address** is Kavita's address as you open it in a browser, such as
+  `http://192.168.1.5:5000`. Paste Kavita's **OPDS URL** instead and the API key comes with it.
+- Otherwise copy an **API key** from Kavita (**User settings → Auth keys**). **Test connection**
+  says which Kavita you reached and who you are signed in as.
+- Lists: On deck (once you have started something), Recently added, then each library and
+  collection.
+- Chapters keep Kavita's order: volumes, loose chapters (a comic library's issues), then specials.
+  PDFs open page by page; text EPUBs don't.
+- Finishing a chapter in Comical marks it read on Kavita, and chapters you read elsewhere show as
+  read after the next library refresh.
 
 ### Plain http:// and your own certificates
 

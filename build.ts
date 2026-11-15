@@ -19,6 +19,7 @@ const CONSOLE_SHIM =
 const bridges: Array<{ id: string; src: string }> = [
   { id: "opds", src: "opds.ts" },
   { id: "komga", src: "komga.ts" },
+  { id: "kavita", src: "kavita.ts" },
 ];
 
 for (const { id, src } of bridges) {

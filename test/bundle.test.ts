@@ -10,6 +10,7 @@ import { loadBridge } from "@comical/core";
 import { mockHost } from "@comical/testkit";
 import { basicAuth } from "../src/core/server.ts";
 import { BOOK, SERIES_A, komgaServer } from "./fixtures/komga-server.ts";
+import { API_KEY, MANGA, kavitaServer } from "./fixtures/kavita-server.ts";
 import { opdsServer } from "./fixtures/opds-server.ts";
 
 const bundle = (id: string): string => {
@@ -55,5 +56,21 @@ describe("komga bundle", () => {
     expect(await bridge.getChapterPages!(SERIES_A, chapter!.id)).toHaveLength(4);
     await bridge.markChapterRead!(SERIES_A, chapter!.id);
     expect(await bridge.getReadChapters!(SERIES_A)).toEqual([BOOK(SERIES_A, 1)]);
+  });
+});
+
+describe("kavita bundle", () => {
+  test("loads in the sandbox, reads a chapter, and syncs it read", async () => {
+    const kavita = kavitaServer("http://kavita.lan:5000");
+    const bridge = await loadBridge({
+      code: bundle("kavita"),
+      expectedId: "porksphere.kavita",
+      capabilities: mockHost({ handle: kavita.handle, settings: { serverUrl: "http://kavita.lan:5000", apiKey: API_KEY } }),
+    });
+    const { items } = await bridge.getSearchResults!({ text: "manga" });
+    const chapters = await bridge.getChapters!(items[0]!.id);
+    expect(await bridge.getChapterPages!(String(MANGA), chapters[1]!.id)).toHaveLength(4);
+    await bridge.markChapterRead!(String(MANGA), chapters[1]!.id);
+    expect(await bridge.getReadChapters!(String(MANGA))).toEqual([chapters[1]!.id]);
   });
 });
