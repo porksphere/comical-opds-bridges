@@ -1,0 +1,26 @@
+{
+  "registryVersion": "1",
+  "updated": "2026-11-15T02:50:52.482Z",
+  "displayName": "Comical self-hosted servers",
+  "bridges": [
+    {
+      "id": "porksphere.opds",
+      "name": "OPDS",
+      "version": "0.1.0",
+      "contractVersion": "2.1.0",
+      "languages": [
+        "multi"
+      ],
+      "nsfw": false,
+      "capabilities": [
+        "lists",
+        "search",
+        "settings"
+      ],
+      "url": "https://raw.githubusercontent.com/porksphere/comical-opds-bridges/main/bridges/porksphere.opds/0.1.0/bridge.js",
+      "sha256": "a6bf38072d1700b6f67fcca0a1aa5af91da727f3853f16356a50189d3c8dbe09",
+      "signature": "gDu_7aCwOaxH4kkEUojobdPc2FpOsvPSipkWcJhPyKGIou4bqgXRlVILhd7iEWDUmeHTkeTQtrp5iThfV9lpDQ"
+    }
+  ],
+  "publicKey": "l_2Fa1cJjRZYDBaPOjiZ0bFO00PgB6zkGxSkjgneE4M"
+}
