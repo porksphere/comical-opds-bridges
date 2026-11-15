@@ -1,0 +1,12 @@
+{
+  "name": "comical-opds-bridges",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Official Comical bridges for self-hosted servers: OPDS, Komga, Kavita, Suwayomi, LANraragi.",
+  "scripts": {
+    "build": "bun run build.ts",
+    "typecheck": "bun ../comical/node_modules/typescript/bin/tsc --noEmit -p .",
+    "publish:registry": "bun run publish.ts"
+  }
+}
