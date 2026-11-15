@@ -16,7 +16,10 @@ const CONSOLE_SHIM =
   "if(typeof console==='undefined'){var __noop=function(){};" +
   "globalThis.console={log:__noop,info:__noop,warn:__noop,error:__noop,debug:__noop,trace:__noop};}";
 
-const bridges: Array<{ id: string; src: string }> = [{ id: "opds", src: "opds.ts" }];
+const bridges: Array<{ id: string; src: string }> = [
+  { id: "opds", src: "opds.ts" },
+  { id: "komga", src: "komga.ts" },
+];
 
 for (const { id, src } of bridges) {
   const result = await Bun.build({

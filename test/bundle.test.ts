@@ -8,6 +8,8 @@ import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { loadBridge } from "@comical/core";
 import { mockHost } from "@comical/testkit";
+import { basicAuth } from "../src/core/server.ts";
+import { BOOK, SERIES_A, komgaServer } from "./fixtures/komga-server.ts";
 import { opdsServer } from "./fixtures/opds-server.ts";
 
 const bundle = (id: string): string => {
@@ -33,5 +35,25 @@ describe("opds bundle", () => {
     const [chapter] = await bridge.getChapters!(series.id);
     const pages = await bridge.getChapterPages!(series.id, chapter!.id);
     expect(pages).toHaveLength(4);
+  });
+});
+
+describe("komga bundle", () => {
+  test("loads in the sandbox, reads a book, and syncs it read", async () => {
+    const auth = basicAuth("reader@example.com", "hunter2");
+    const komga = komgaServer("http://komga.lan:25600", { authorization: auth });
+    const bridge = await loadBridge({
+      code: bundle("komga"),
+      expectedId: "porksphere.komga",
+      capabilities: mockHost({
+        handle: komga.handle,
+        settings: { serverUrl: "http://komga.lan:25600", username: "reader@example.com", password: "hunter2" },
+      }),
+    });
+    const { items } = await bridge.getSearchResults!({ text: "series a" });
+    const [chapter] = await bridge.getChapters!(items[0]!.id);
+    expect(await bridge.getChapterPages!(SERIES_A, chapter!.id)).toHaveLength(4);
+    await bridge.markChapterRead!(SERIES_A, chapter!.id);
+    expect(await bridge.getReadChapters!(SERIES_A)).toEqual([BOOK(SERIES_A, 1)]);
   });
 });

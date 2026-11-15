@@ -27,7 +27,11 @@ describe("server", () => {
     expect(serverImages(undefined, true)).toBeUndefined();
     expect(serverImages("http://[::1]:8080/x", false)).toEqual({ hosts: ["::1"] });
     expect(authorizedImage("http://h/x", undefined)).toEqual({ url: "http://h/x" });
-    expect(authorizedImage("http://h/x", "Basic a")).toEqual({ url: "http://h/x", headers: { Authorization: "Basic a" } });
+    expect(authorizedImage("http://h/x", {})).toEqual({ url: "http://h/x" });
+    expect(authorizedImage("http://h/x", { Authorization: "Basic a" })).toEqual({
+      url: "http://h/x",
+      headers: { Authorization: "Basic a" },
+    });
   });
 });
 

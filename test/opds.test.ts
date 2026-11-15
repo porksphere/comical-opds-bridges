@@ -188,7 +188,7 @@ describe("a series feed", () => {
   test("a book with only a download is listed but says why it can't open", async () => {
     const { bridge, id } = await seriesA();
     const extras = (await bridge.getChapters!(id)).at(-1)!;
-    expect(bridge.getChapterPages!(id, extras.id)).rejects.toThrow(/OPDS-PSE/);
+    await expect(bridge.getChapterPages!(id, extras.id)).rejects.toThrow(/OPDS-PSE/);
   });
 
   test("a series opened without its card still gets a title and cover from the feed", async () => {
@@ -233,7 +233,7 @@ describe("search", () => {
       },
       settings: { catalogUrl: CATALOG },
     });
-    expect(factory(host).getSearchResults!({ text: "x" })).rejects.toThrow(/doesn't offer search/);
+    await expect(factory(host).getSearchResults!({ text: "x" })).rejects.toThrow(/doesn't offer search/);
   });
 });
 

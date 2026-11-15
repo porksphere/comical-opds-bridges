@@ -45,7 +45,7 @@ export function serverImages(serverUrl: string | undefined, authenticated: boole
   return authenticated ? { hosts: [host], intercept: [host] } : { hosts: [host] };
 }
 
-/** The interceptor's answer for one image: the same URL, with the server's auth header if any. */
-export function authorizedImage(url: string, authorization: string | undefined): ImageRequest {
-  return authorization ? { url, headers: { Authorization: authorization } } : { url };
+/** The interceptor's answer for one image: the same URL, with the server's auth headers if any. */
+export function authorizedImage(url: string, headers: Record<string, string> | undefined): ImageRequest {
+  return headers && Object.keys(headers).length > 0 ? { url, headers: { ...headers } } : { url };
 }

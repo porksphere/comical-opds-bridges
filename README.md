@@ -5,7 +5,7 @@ Official [Comical](https://github.com/porksphere/comical-app) bridges for server
 | Bridge | Talks to | Status |
 |---|---|---|
 | **OPDS** (`porksphere.opds`) | Any OPDS 1.x catalog that streams pages with OPDS-PSE: Komga, Kavita, Codex, Stump, Ubooquity… | Available |
-| Komga | Komga's REST API (reading progress syncs back) | Planned |
+| **Komga** (`porksphere.komga`) | Komga 1.19 or later, through its REST API. Read books sync both ways | Available |
 | Kavita | Kavita's REST API | Planned |
 | Suwayomi | Suwayomi's GraphQL API | Planned |
 | LANraragi | LANraragi's API | Planned |
@@ -28,6 +28,18 @@ username and password. **Test connection** in the bridge's settings checks both.
 - Books open only on servers that stream pages (OPDS-PSE). A book a server offers only as a
   whole-file download is listed, but says it can't be opened.
 - OPDS can't send reading progress back to the server. The dedicated bridges will.
+
+### Komga
+
+- **Server address** is Komga's address as you open it in a browser, such as
+  `http://192.168.1.5:25600`. A pasted Komga page or OPDS link works too.
+- Sign in with an **API key** (Komga: **Account settings → API keys**) or your email and password.
+  The account needs Komga's **Page streaming** role to open books. **Test connection** checks both.
+- Lists: Keep reading and On deck (once you have something in them), Recently added, Recently
+  updated, then each library and collection.
+- Finishing a book in Comical marks it read on Komga. Books you read elsewhere show as read after
+  the next library refresh.
+- Komga links (`/series/…`, `/book/…`) open in Comical.
 
 ### Plain http:// and your own certificates
 

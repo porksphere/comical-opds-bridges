@@ -195,7 +195,9 @@ class OpdsBridge extends BridgeBase<Settings> {
   }
 
   interceptImageRequest(url: string): Promise<ImageRequest> {
-    return Promise.resolve(authorizedImage(url, this.authorization));
+    return Promise.resolve(
+      authorizedImage(url, this.authorization ? { Authorization: this.authorization } : undefined),
+    );
   }
 
   // ---- Lists ----
