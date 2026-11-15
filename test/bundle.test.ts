@@ -12,6 +12,7 @@ import { basicAuth } from "../src/core/server.ts";
 import { BOOK, SERIES_A, komgaServer } from "./fixtures/komga-server.ts";
 import { API_KEY, MANGA, kavitaServer } from "./fixtures/kavita-server.ts";
 import { PASS, USER, suwayomiServer } from "./fixtures/suwayomi-server.ts";
+import { ARC, KEY, lanraragiServer } from "./fixtures/lanraragi-server.ts";
 import { opdsServer } from "./fixtures/opds-server.ts";
 
 const bundle = (id: string): string => {
@@ -92,5 +93,21 @@ describe("suwayomi bundle", () => {
     expect(await bridge.getChapterPages!(items[0]!.id, chapters[2]!.id)).toHaveLength(4);
     await bridge.markChapterRead!(items[0]!.id, chapters[2]!.id);
     expect(await bridge.getReadChapters!(items[0]!.id)).toEqual([chapters[2]!.id]);
+  });
+});
+
+describe("lanraragi bundle", () => {
+  test("loads in the sandbox as a direct bridge, reads an archive, and syncs it read", async () => {
+    const lrr = lanraragiServer("http://lrr.lan:3000", { nofun: true });
+    const bridge = await loadBridge({
+      code: bundle("lanraragi"),
+      expectedId: "porksphere.lanraragi",
+      capabilities: mockHost({ handle: lrr.handle, settings: { serverUrl: "http://lrr.lan:3000", apiKey: KEY } }),
+    });
+    expect(bridge.getChapters).toBeUndefined();
+    const { items } = await bridge.getSearchResults!({ text: "doujin" });
+    expect(await bridge.getSeriesPages!(items[0]!.id)).toHaveLength(5);
+    await bridge.markChapterRead!(ARC(1), "__direct__");
+    expect(await bridge.getReadChapters!(ARC(1))).toEqual(["__direct__"]);
   });
 });

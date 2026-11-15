@@ -8,7 +8,7 @@ Official [Comical](https://github.com/porksphere/comical-app) bridges for server
 | **Komga** (`porksphere.komga`) | Komga 1.19 or later, through its REST API. Read books sync both ways | Available |
 | **Kavita** (`porksphere.kavita`) | Kavita's REST API, signed in with your API key. Read chapters sync both ways | Available |
 | **Suwayomi** (`porksphere.suwayomi`) | Suwayomi-Server v2, through its GraphQL API: your library and installed sources. Read chapters sync both ways | Available |
-| LANraragi | LANraragi's API | Planned |
+| **LANraragi** (`porksphere.lanraragi`, NSFW) | LANraragi's API: each archive opens as one book. Reading progress syncs | Available |
 
 ## Add the registry
 
@@ -66,6 +66,19 @@ username and password. **Test connection** in the bridge's settings checks both.
 - Search looks in your library and in up to 8 sources at once.
 - Finishing a chapter in Comical marks it read on Suwayomi, and chapters you read elsewhere show as
   read after the next library refresh.
+
+### LANraragi
+
+- Marked NSFW, since that's what most LANraragi libraries hold: Comical shows it only where NSFW
+  sources are allowed.
+- **Server address** is LANraragi's address as you open it in a browser, such as
+  `http://192.168.1.5:3000`.
+- The **API key** (LANraragi: **Settings → Security**) is needed in No-Fun Mode, and to sync
+  reading progress or clear the New flag. Without it an open server still reads fine.
+- Each archive is one book, with no chapters. Lists: Continue reading, New, Recently added, each
+  category with something in it, and All archives. Search takes LANraragi's own syntax, such as
+  `artist:someone`.
+- Finishing an archive sets its progress on the server to the last page and clears New.
 
 ### Plain http:// and your own certificates
 

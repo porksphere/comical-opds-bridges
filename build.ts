@@ -21,6 +21,7 @@ const bridges: Array<{ id: string; src: string }> = [
   { id: "komga", src: "komga.ts" },
   { id: "kavita", src: "kavita.ts" },
   { id: "suwayomi", src: "suwayomi.ts" },
+  { id: "lanraragi", src: "lanraragi.ts" },
 ];
 
 for (const { id, src } of bridges) {
