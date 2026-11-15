@@ -1,4 +1,4 @@
-import { describe, expect, test } from "bun:test";
+import { afterEach, describe, expect, setSystemTime, test } from "bun:test";
 import {
   bridgeInfoSchema,
   chapterSchema,
@@ -12,7 +12,7 @@ import {
 import { mockHost, runConformance } from "@comical/testkit";
 import factory from "../src/opds.ts";
 import { basicAuth } from "../src/core/server.ts";
-import { opdsServer } from "./fixtures/opds-server.ts";
+import { ROUTES, opdsServer } from "./fixtures/opds-server.ts";
 
 const ORIGIN = "http://komga.lan:25600";
 const CATALOG = `${ORIGIN}/opds/v1.2/catalog`;
@@ -78,6 +78,46 @@ describe("lists", () => {
     expect(server.requests.length).toBe(after);
   });
 
+  describe("with a root feed that is empty for now", () => {
+    const empty = ROUTES["/opds/v1.2/ondeck"]!;
+    const root = ROUTES["/opds/v1.2/catalog"]!;
+    afterEach(() => {
+      setSystemTime();
+      ROUTES["/opds/v1.2/ondeck"] = empty;
+      ROUTES["/opds/v1.2/catalog"] = root;
+    });
+
+    test("leave it out, and look again in minutes rather than hours", async () => {
+      const { bridge, host } = setup();
+      expect((await bridge.getLists!()).map((l) => l.name)).not.toContain("On Deck");
+      ROUTES["/opds/v1.2/ondeck"] = ROUTES["/opds/v1.2/books/ondeck"]!;
+      expect((await bridge.getLists!()).map((l) => l.name)).not.toContain("On Deck");
+      setSystemTime(new Date(Date.now() + 11 * 60 * 1000));
+      expect((await bridge.getLists!()).map((l) => l.name)).toContain("On Deck");
+      expect((await factory(host).getLists!()).map((l) => l.name)).toContain("On Deck");
+    });
+
+    test("a feed that failed is looked at again soon too", async () => {
+      const { bridge, server } = setup();
+      await bridge.getLists!();
+      setSystemTime(new Date(Date.now() + 11 * 60 * 1000));
+      await bridge.getLists!();
+      expect(server.requests.filter((r) => r.url.endsWith("/broken"))).toHaveLength(2);
+    });
+
+    test("once every feed is told apart, keep them for hours", async () => {
+      ROUTES["/opds/v1.2/ondeck"] = ROUTES["/opds/v1.2/books/ondeck"]!;
+      ROUTES["/opds/v1.2/catalog"] = root.replace(/<entry><title>Broken<\/title>.*?<\/entry>/, "");
+      const { bridge, server, host } = setup();
+      await bridge.getLists!();
+      const after = server.requests.length;
+      setSystemTime(new Date(Date.now() + 5 * 60 * 60 * 1000));
+      await bridge.getLists!();
+      await factory(host).getLists!();
+      expect(server.requests.length).toBe(after);
+    });
+  });
+
   test("a series list holds series, with absolute covers", async () => {
     const { bridge } = setup();
     const page = await bridge.getListItems!((await listByName(bridge, "Latest series")).id);
@@ -113,6 +153,12 @@ describe("a series feed", () => {
     expect(info.title).toBe("Test Series A");
     expect(info.thumbnailUrl).toBe(`${ORIGIN}/opds/v1.2/series/a/thumbnail`);
     expect(info.author).toBe("Jane Artist");
+  });
+
+  test("a book's description loses the markup and the file size, and keeps its line breaks", async () => {
+    const { bridge } = setup();
+    const [book] = (await bridge.getListItems!((await listByName(bridge, "Keep reading")).id)).items;
+    expect((await bridge.getSeriesDetails(book!.id)).description).toBe("Volume 1 & more\nSecond line");
   });
 
   test("chapters are its books, across pages, in feed order", async () => {
@@ -162,7 +208,7 @@ describe("a book met outside its series", () => {
     expect(book.title).toBe("Test Series A v01");
     const info = await bridge.getSeriesDetails(book.id);
     expect(info.title).toBe("Test Series A v01");
-    expect(info.description).toBe("Volume 1 & more");
+    expect(info.description).toBe("Volume 1 & more\nSecond line");
     const chapters = await bridge.getChapters!(book.id);
     expect(chapters).toHaveLength(1);
     expect((await bridge.getChapterPages!(book.id, chapters[0]!.id))).toHaveLength(4);
@@ -236,6 +282,15 @@ describe("settings", () => {
     const bad = await setup({ catalogUrl: `${ORIGIN}/nope` }).bridge.runSettingAction!("test");
     expect(bad.ok).toBe(false);
     expect(bad.message).toContain("404");
+  });
+
+  test("Test connection gives a refused sign-in in plain words", async () => {
+    const AUTH = basicAuth("reader", "hunter2");
+    const wrong = { catalogUrl: CATALOG, username: "reader", password: "nope" };
+    expect(await setup(wrong, AUTH).bridge.runSettingAction!("test")).toEqual({
+      ok: false,
+      message: "The server turned down this username and password.",
+    });
   });
 });
 

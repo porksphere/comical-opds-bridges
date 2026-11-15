@@ -1,7 +1,8 @@
 /**
  * A Komga-shaped OPDS 1.2 catalog, served in-process. Shapes follow the OPDS 1.2 and OPDS-PSE 1.2
  * specs: navigation and acquisition feeds, `rel="next"` paging, an OpenSearch description, books
- * with a PSE stream (and one with only a download).
+ * with a PSE stream (and one with only a download). Books carry what a live Komga 26.04 sends: one
+ * author per role, and an untyped description of escaped HTML that opens with the file's size.
  */
 import type { HttpRequest, HttpResponse } from "@comical/sdk";
 
@@ -23,8 +24,8 @@ const nav = (title: string, href: string, type = NAV, thumb?: string) =>
 
 const book = (n: number, title: string, pages: number | undefined) =>
   `<entry><title>${title}</title><id>book-${n}</id><updated>2026-11-14T00:00:00Z</updated>` +
-  `<author><name>Jane Artist</name></author>` +
-  `<content type="text">Volume ${n} &amp; more</content>` +
+  `<author><name>Jane Artist</name></author><author><name>Jane Artist</name></author>` +
+  `<content>cbz - 1.2 MiB&lt;br/>&lt;br/>Volume ${n} &amp;amp; more&lt;br/>Second line</content>` +
   `<dcterms:issued>2024-05-0${n}</dcterms:issued>` +
   `<link rel="http://opds-spec.org/image" href="/opds/v1.2/books/${n}/thumbnail" type="image/jpeg"/>` +
   `<link rel="http://opds-spec.org/image/thumbnail" href="/opds/v1.2/books/${n}/thumbnail/small" type="image/jpeg"/>` +
@@ -42,11 +43,14 @@ export const ROUTES: Record<string, string> = {
     "root",
     "Komga OPDS catalog",
     nav("Keep reading", "/opds/v1.2/books/ondeck", ACQ) +
+      nav("On Deck", "/opds/v1.2/ondeck", ACQ) +
       nav("Latest series", "/opds/v1.2/series/latest") +
       nav("Libraries", "/opds/v1.2/libraries") +
       nav("Broken", "/opds/v1.2/broken"),
     '<link rel="search" href="/opds/v1.2/search" type="application/opensearchdescription+xml"/>',
   ),
+  // Empty until the reader starts something, so it can't be told apart yet.
+  "/opds/v1.2/ondeck": feed("ondeck-empty", "On Deck", ""),
   "/opds/v1.2/books/ondeck": feed("ondeck", "Keep reading", book(1, "Test Series A v01", 4)),
   "/opds/v1.2/series/latest": feed(
     "latest",

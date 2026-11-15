@@ -35,6 +35,7 @@ import {
   defineBridge,
   defineSettings,
   loginRequiredMessage,
+  parseLoginRequired,
 } from "@comical/sdk";
 import { absoluteFromOrigin, decodeId, encodeId, idKind, relativeToOrigin } from "./core/ids.ts";
 import { insecureCredentialsWarning } from "./core/network-safety.ts";
@@ -74,6 +75,11 @@ type Settings = InferSettings<typeof SETTINGS>;
 
 /** How long the catalog's list structure is reused before it is walked again. */
 const LISTS_TTL_MS = 6 * 60 * 60 * 1000;
+/**
+ * How long lists are kept when a root feed was empty and so couldn't be told apart (a new reader's
+ * On Deck): soon enough that it appears once it has something in it.
+ */
+const PARTIAL_LISTS_TTL_MS = 10 * 60 * 1000;
 /** Root entries and categories walked when building lists, so a huge catalog stays one screen. */
 const MAX_ROOT_ENTRIES = 30;
 const MAX_CATEGORY_LISTS = 15;
@@ -116,7 +122,7 @@ class OpdsBridge extends BridgeBase<Settings> {
   private readonly catalogUrl: string | undefined;
   private readonly authorization: string | undefined;
   private readonly load: XmlLoader = (xml) => this.parse("").load(xml, { xml: true });
-  private listsMemo: Promise<SeriesList[]> | undefined;
+  private listsMemo: { lists: Promise<SeriesList[]>; until: number } | undefined;
   private searchMemo: Promise<string | undefined> | undefined;
 
   constructor(host: HostCapabilities) {
@@ -182,7 +188,9 @@ class OpdsBridge extends BridgeBase<Settings> {
       const root = await this.fetchFeed(this.catalogUrl);
       return { ok: true, message: `Connected to “${root.title}”.` };
     } catch (e) {
-      return { ok: false, message: e instanceof Error ? e.message : String(e) };
+      const message = e instanceof Error ? e.message : String(e);
+      // The settings form shows this to the user as it is: the sign-in marker is for hosts.
+      return { ok: false, message: parseLoginRequired(message)?.reason ?? message };
     }
   }
 
@@ -193,11 +201,20 @@ class OpdsBridge extends BridgeBase<Settings> {
   // ---- Lists ----
 
   getLists(): Promise<SeriesList[]> {
-    this.listsMemo ??= this.cachedLists().catch((e: unknown) => {
-      this.listsMemo = undefined;
-      throw e;
-    });
-    return this.listsMemo;
+    if (this.listsMemo && Date.now() < this.listsMemo.until) return this.listsMemo.lists;
+    const memo = { lists: Promise.resolve<SeriesList[]>([]), until: Number.POSITIVE_INFINITY };
+    memo.lists = this.cachedLists().then(
+      ({ lists, until }) => {
+        memo.until = until;
+        return lists;
+      },
+      (e: unknown) => {
+        if (this.listsMemo === memo) this.listsMemo = undefined;
+        throw e;
+      },
+    );
+    this.listsMemo = memo;
+    return memo.lists;
   }
 
   async getListItems(listId: string, req?: ListRequest): Promise<PagedResults<SeriesEntry>> {
@@ -323,23 +340,26 @@ class OpdsBridge extends BridgeBase<Settings> {
     return parseFeed(res.body, res.url || url, this.load);
   }
 
-  private async cachedLists(): Promise<SeriesList[]> {
+  /** The lists, from storage while they are fresh, and until when they are. */
+  private async cachedLists(): Promise<{ lists: SeriesList[]; until: number }> {
     const key = `lists:${this.catalog()}`;
     const stored = await this.storage.get(key);
     if (stored) {
       try {
-        const { at, lists } = JSON.parse(stored) as { at: number; lists: SeriesList[] };
-        if (Date.now() - at < LISTS_TTL_MS && lists.length > 0) return lists;
+        const { until, lists } = JSON.parse(stored) as { until?: number; lists: SeriesList[] };
+        if (typeof until === "number" && Date.now() < until && lists.length > 0) return { lists, until };
       } catch {
         // A corrupt cache is rebuilt below.
       }
     }
-    const lists = await this.buildLists();
-    if (lists.length > 0) await this.storage.set(key, JSON.stringify({ at: Date.now(), lists }));
-    return lists;
+    const { lists, complete } = await this.buildLists();
+    const until = Date.now() + (complete ? LISTS_TTL_MS : PARTIAL_LISTS_TTL_MS);
+    if (lists.length > 0) await this.storage.set(key, JSON.stringify({ until, lists }));
+    return { lists, until: lists.length > 0 ? until : 0 };
   }
 
-  private async buildLists(): Promise<SeriesList[]> {
+  /** The lists, and whether every root feed could be told apart (none was empty or failed). */
+  private async buildLists(): Promise<{ lists: SeriesList[]; complete: boolean }> {
     const root = await this.fetchFeed(this.catalog());
     const found: Array<{ name: string; description?: string; payload: ListPayload }> = [];
 
@@ -350,6 +370,7 @@ class OpdsBridge extends BridgeBase<Settings> {
 
     const navs = root.entries.filter((e) => navigationHref(e)).slice(0, MAX_ROOT_ENTRIES);
     const classified = await Promise.all(navs.map((nav) => this.classify(nav).catch(() => undefined)));
+    const complete = classified.every((c) => c !== undefined);
     navs.forEach((nav, i) => {
       const c = classified[i];
       const href = navigationHref(nav)!;
@@ -367,13 +388,14 @@ class OpdsBridge extends BridgeBase<Settings> {
       }
     });
 
-    return found.map((f, i) => ({
+    const lists = found.map((f, i): SeriesList => ({
       id: encodeId("l", f.payload),
       name: f.name,
       ...(f.description ? { description: f.description } : {}),
       layout: i < FEATURED_LISTS ? "carousel" : "grid",
       featured: i < FEATURED_LISTS,
     }));
+    return { lists, complete };
   }
 
   /**

@@ -63,14 +63,41 @@ function resolveHref(href: string, base: string): string | undefined {
   }
 }
 
-/** An Atom text construct as plain text: `type="html"` and `type="xhtml"` lose their markup. */
-function text($: CheerioRoot, load: XmlLoader, el: El | undefined): string | undefined {
+/** Escaped markup in a text construct, which servers send without `type="html"` (Komga does). */
+const ESCAPED_MARKUP = /<\/?(?:br|p|div|b|i|em|strong|span|a|ul|ol|li|h[1-6])\b[^>]*>/i;
+
+/**
+ * Komga opens every book's description with its file's format and size ("cbz - 1.2 MiB"), which
+ * says nothing about the book.
+ */
+const FILE_INFO_PREFIX = /^(?:cb[zrt7]|zip|rar|7z|pdf|epub)\s+-\s+[\d.,]+\s*[KMGT]i?B\s*/i;
+
+/**
+ * An Atom text construct as plain text: `type="html"` and `type="xhtml"` lose their markup, and so
+ * does untyped text carrying escaped markup. `multiline` keeps paragraph and line breaks.
+ */
+function text($: CheerioRoot, load: XmlLoader, el: El | undefined, multiline = false): string | undefined {
   if (!el) return undefined;
   const type = el.attribs.type?.toLowerCase();
   let value = $(el as never).text();
-  if (type === "html" || type === "text/html") value = load(`<x>${value}</x>`)("x").text();
-  value = value.replace(/\s+/g, " ").trim();
+  if (type === "html" || type === "text/html" || ESCAPED_MARKUP.test(value)) {
+    if (multiline) value = value.replace(/<br\s*\/?>/gi, "\n").replace(/<\/(?:p|div|li|h[1-6])>/gi, "\n");
+    value = load(`<x>${value}</x>`)("x").text();
+  }
+  value = multiline
+    ? value
+        .replace(/[^\S\n]+/g, " ")
+        .replace(/ *\n */g, "\n")
+        .replace(/\n{3,}/g, "\n\n")
+        .trim()
+    : value.replace(/\s+/g, " ").trim();
   return value.length > 0 ? value : undefined;
+}
+
+function summaryOf($: CheerioRoot, load: XmlLoader, el: El): string | undefined {
+  const value = text($, load, child(el, "summary"), true) ?? text($, load, child(el, "content"), true);
+  const trimmed = value?.replace(FILE_INFO_PREFIX, "").trim();
+  return trimmed ? trimmed : undefined;
 }
 
 function links(el: El, base: string): OpdsLink[] {
@@ -89,10 +116,15 @@ function entry($: CheerioRoot, load: XmlLoader, el: El, base: string): OpdsEntry
     title: text($, load, child(el, "title")) ?? "Untitled",
     updated: text($, load, child(el, "updated")),
     issued: text($, load, child(el, "issued")),
-    summary: text($, load, child(el, "summary")) ?? text($, load, child(el, "content")),
-    authors: children(el, "author")
-      .map((a) => text($, load, child(a, "name")))
-      .filter((n): n is string => n !== undefined),
+    summary: summaryOf($, load, el),
+    // Servers list a person once per role (Komga: writer, then penciller).
+    authors: [
+      ...new Set(
+        children(el, "author")
+          .map((a) => text($, load, child(a, "name")))
+          .filter((n): n is string => n !== undefined),
+      ),
+    ],
     categories: children(el, "category")
       .map((c) => c.attribs.label ?? c.attribs.term)
       .filter((c): c is string => typeof c === "string" && c.length > 0),
