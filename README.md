@@ -7,7 +7,7 @@ Official [Comical](https://github.com/porksphere/comical-app) bridges for server
 | **OPDS** (`porksphere.opds`) | Any OPDS 1.x catalog that streams pages with OPDS-PSE: Komga, Kavita, Codex, Stump, Ubooquity… | Available |
 | **Komga** (`porksphere.komga`) | Komga 1.19 or later, through its REST API. Read books sync both ways | Available |
 | **Kavita** (`porksphere.kavita`) | Kavita's REST API, signed in with your API key. Read chapters sync both ways | Available |
-| Suwayomi | Suwayomi's GraphQL API | Planned |
+| **Suwayomi** (`porksphere.suwayomi`) | Suwayomi-Server v2, through its GraphQL API: your library and installed sources. Read chapters sync both ways | Available |
 | LANraragi | LANraragi's API | Planned |
 
 ## Add the registry
@@ -52,6 +52,19 @@ username and password. **Test connection** in the bridge's settings checks both.
 - Chapters keep Kavita's order: volumes, loose chapters (a comic library's issues), then specials.
   PDFs open page by page; text EPUBs don't.
 - Finishing a chapter in Comical marks it read on Kavita, and chapters you read elsewhere show as
+  read after the next library refresh.
+
+### Suwayomi
+
+- **Server address** is Suwayomi's address as you open it in a browser, such as
+  `http://192.168.1.5:4567`.
+- Leave the username and password empty if Suwayomi has no sign-in. With **Basic auth** or **UI
+  login** turned on, enter its username and password. Simple login can't be used from Comical.
+- Lists: Recently updated and your library (one list per category) when they have something in
+  them, then each installed source, the Local source first. Each source's list searches that
+  source.
+- Search looks in your library and in up to 8 sources at once.
+- Finishing a chapter in Comical marks it read on Suwayomi, and chapters you read elsewhere show as
   read after the next library refresh.
 
 ### Plain http:// and your own certificates

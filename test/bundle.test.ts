@@ -11,6 +11,7 @@ import { mockHost } from "@comical/testkit";
 import { basicAuth } from "../src/core/server.ts";
 import { BOOK, SERIES_A, komgaServer } from "./fixtures/komga-server.ts";
 import { API_KEY, MANGA, kavitaServer } from "./fixtures/kavita-server.ts";
+import { PASS, USER, suwayomiServer } from "./fixtures/suwayomi-server.ts";
 import { opdsServer } from "./fixtures/opds-server.ts";
 
 const bundle = (id: string): string => {
@@ -72,5 +73,24 @@ describe("kavita bundle", () => {
     expect(await bridge.getChapterPages!(String(MANGA), chapters[1]!.id)).toHaveLength(4);
     await bridge.markChapterRead!(String(MANGA), chapters[1]!.id);
     expect(await bridge.getReadChapters!(String(MANGA))).toEqual([chapters[1]!.id]);
+  });
+});
+
+describe("suwayomi bundle", () => {
+  test("loads in the sandbox, signs in with UI login, reads a chapter, and syncs it read", async () => {
+    const suwayomi = suwayomiServer("http://suwayomi.lan:4567", { auth: "UI_LOGIN" });
+    const bridge = await loadBridge({
+      code: bundle("suwayomi"),
+      expectedId: "porksphere.suwayomi",
+      capabilities: mockHost({
+        handle: suwayomi.handle,
+        settings: { serverUrl: "http://suwayomi.lan:4567", username: USER, password: PASS },
+      }),
+    });
+    const { items } = await bridge.getSearchResults!({ text: "online" });
+    const chapters = await bridge.getChapters!(items[0]!.id);
+    expect(await bridge.getChapterPages!(items[0]!.id, chapters[2]!.id)).toHaveLength(4);
+    await bridge.markChapterRead!(items[0]!.id, chapters[2]!.id);
+    expect(await bridge.getReadChapters!(items[0]!.id)).toEqual([chapters[2]!.id]);
   });
 });
