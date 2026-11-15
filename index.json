@@ -1,12 +1,72 @@
 {
   "registryVersion": "1",
-  "updated": "2026-11-15T02:50:52.482Z",
+  "updated": "2026-11-15T05:43:23.372Z",
   "displayName": "Comical self-hosted servers",
   "bridges": [
     {
+      "id": "porksphere.kavita",
+      "name": "Kavita",
+      "version": "0.1.0",
+      "contractVersion": "2.1.0",
+      "languages": [
+        "multi"
+      ],
+      "nsfw": false,
+      "capabilities": [
+        "lists",
+        "search",
+        "settings",
+        "read-sync"
+      ],
+      "url": "https://raw.githubusercontent.com/porksphere/comical-opds-bridges/main/bridges/porksphere.kavita/0.1.0/bridge.js",
+      "sha256": "96e450fe9b72329e2516545a0c2e8c539cfebcca89c0aa98a55f5e5cc27bad00",
+      "signature": "LPLL6rEucIM3fvZaKzX6b_-4oZnuEZ1oOgPmk7n6bH5RmLl5z13BdBYPl4dqFbSwG2T_0jQMmuG4r4l279JiDg"
+    },
+    {
+      "id": "porksphere.komga",
+      "name": "Komga",
+      "version": "0.1.0",
+      "contractVersion": "2.1.0",
+      "languages": [
+        "multi"
+      ],
+      "nsfw": false,
+      "capabilities": [
+        "lists",
+        "search",
+        "settings",
+        "read-sync"
+      ],
+      "url": "https://raw.githubusercontent.com/porksphere/comical-opds-bridges/main/bridges/porksphere.komga/0.1.0/bridge.js",
+      "sha256": "3541b0509984d66d9b55b3003db9ca3f7883ebfc2e6881589124f0eb3817abf2",
+      "cardSubtitles": true,
+      "signature": "gzp7xHRpUZH7tVpWSko-gWsjSqkmRKjwYPn4pIg_2H2E1zJS9JM0Yn8aM15hSUVAXIBXO2PfTdS7U8i8G6h2BQ"
+    },
+    {
+      "id": "porksphere.lanraragi",
+      "name": "LANraragi",
+      "version": "0.1.0",
+      "contractVersion": "2.1.0",
+      "languages": [
+        "multi"
+      ],
+      "nsfw": true,
+      "capabilities": [
+        "direct",
+        "lists",
+        "search",
+        "settings",
+        "read-sync"
+      ],
+      "url": "https://raw.githubusercontent.com/porksphere/comical-opds-bridges/main/bridges/porksphere.lanraragi/0.1.0/bridge.js",
+      "sha256": "378c5872cdcc9e65d84ab1f5c3ba6b5594cdf5d75697d3b39ee824df7b996774",
+      "cardSubtitles": true,
+      "signature": "auyqVA6W8hf6N7M_DSnwi-q56ouq62eEieHghig0z1iKo6_CIRqsUyc9ETmzBBaoNk8qZmbXBRefxQ9iTTVpCQ"
+    },
+    {
       "id": "porksphere.opds",
       "name": "OPDS",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "contractVersion": "2.1.0",
       "languages": [
         "multi"
@@ -17,9 +77,29 @@
         "search",
         "settings"
       ],
-      "url": "https://raw.githubusercontent.com/porksphere/comical-opds-bridges/main/bridges/porksphere.opds/0.1.0/bridge.js",
-      "sha256": "a6bf38072d1700b6f67fcca0a1aa5af91da727f3853f16356a50189d3c8dbe09",
-      "signature": "gDu_7aCwOaxH4kkEUojobdPc2FpOsvPSipkWcJhPyKGIou4bqgXRlVILhd7iEWDUmeHTkeTQtrp5iThfV9lpDQ"
+      "url": "https://raw.githubusercontent.com/porksphere/comical-opds-bridges/main/bridges/porksphere.opds/0.1.1/bridge.js",
+      "sha256": "5b9b34396b4e34bd21a84d3d08e28995c8d44c91275041288e3af428c44ba8b9",
+      "signature": "iXVfsEXVODzTC4xb3ChsgpBo2_Qp5K7U1C8wYMxrMsBZp3k6aXiaCK-PiuD8SjsAXxVAWIi70KtJHtEiePTQAw"
+    },
+    {
+      "id": "porksphere.suwayomi",
+      "name": "Suwayomi",
+      "version": "0.1.0",
+      "contractVersion": "2.1.0",
+      "languages": [
+        "multi"
+      ],
+      "nsfw": false,
+      "capabilities": [
+        "lists",
+        "search",
+        "settings",
+        "read-sync"
+      ],
+      "url": "https://raw.githubusercontent.com/porksphere/comical-opds-bridges/main/bridges/porksphere.suwayomi/0.1.0/bridge.js",
+      "sha256": "9951e8e0aeab4bb76a266d846352291dd3297187daae7bab9e154310bb331276",
+      "cardSubtitles": true,
+      "signature": "tb3H9c9jRGiLaSJ7oYROrW6oyMKH--g9qeaPuyZf851npNh2PX3ItQMYsOQR0cewvbikHi9-TkTw8NWkAs6KBg"
     }
   ],
   "publicKey": "l_2Fa1cJjRZYDBaPOjiZ0bFO00PgB6zkGxSkjgneE4M"
